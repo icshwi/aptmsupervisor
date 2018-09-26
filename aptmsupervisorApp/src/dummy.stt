@@ -1,10 +1,10 @@
 program dummy
 
 string myPV;
-assign myPV to "testmypv:currentState";
+assign myPV to "{P}:currentState";
 
 int myPV2;
-assign myPV2 to "$(P):stateOut";
+assign myPV2 to "{P}:stateOut";
 
 ss ss1 {
 

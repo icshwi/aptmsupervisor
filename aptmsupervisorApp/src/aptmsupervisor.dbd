@@ -1,2 +1,2 @@
-registrar(collision_preventionRegistrar)
+#registrar(collision_preventionRegistrar)
 registrar(dummyRegistrar)
