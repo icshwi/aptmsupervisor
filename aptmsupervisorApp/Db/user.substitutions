@@ -1,0 +1,12 @@
+# Example substitutions file
+
+file "db/dbExample1.db" {
+    { user = "dev" }
+}
+
+file db/dbExample2.db {
+    pattern { user, no, scan }
+        { "dev", 1, "1 second" }
+        { "dev", 2, "2 second" }
+        { "dev", 3, "5 second" }
+}
