@@ -1,0 +1,2 @@
+registrar(collision_preventionRegistrar)
+registrar(dummyRegistrar)
