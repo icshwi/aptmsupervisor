@@ -1,0 +1,110 @@
+record(mbbi, "$(P):stateRB")
+{
+        field(DESC, "State Machine write status")
+		field(INP, "$(P):stateOut NPP") 
+
+		field(ZRVL,0)
+		field(ZRST,"home_grid")
+		
+		field(ONVL,1)
+		field(ONST,"safe_grid_init")
+
+		field(TWVL,2)
+		field(TWST,"home_aptm")
+
+		field(THVL,3)
+		field(THST,"safe_aptm_init")
+
+		field(FRVL,4)
+		field(FRST,"move_aptm")
+
+		field(FVVL,5)
+		field(FVST,"brakes_on")
+
+		field(SXVL,6)
+		field(SXST,"aptm_moving")
+
+		field(SVVL,7)
+		field(SVST,"aptm_alarm")
+
+		field(EIVL,8)
+		field(EIST,"aptm_recovering")
+
+		field(NIVL,9)
+		field(NIST,"grid_moving")
+
+		field(TEVL,10)
+		field(TEST,"grid_alarm")
+
+		field(ELVL,11)
+		field(ELST,"grid_recovering")
+
+#		field(TVVL,0)
+#		field(TVST)
+#		field(TTVL,0)
+#		field(TTST)
+#		field(FTVL,0)
+#		field(FTST)
+#		field(FFVL,0)
+#		field(FFST)
+}
+
+record(state, "$(P):currentState")
+{
+        field(DESC, "APTM GRID state machine")
+}
+
+record(mbbo, "$(P):stateOut")
+{
+        field(DESC, "State Machine write status")
+
+		field(ZRVL,0)
+		field(ZRST,"home_grid")
+		
+		field(ONVL,1)
+		field(ONST,"safe_grid_init")
+
+		field(TWVL,2)
+		field(TWST,"home_aptm")
+
+		field(THVL,3)
+		field(THST,"safe_aptm_init")
+
+		field(FRVL,4)
+		field(FRST,"move_aptm")
+
+		field(FVVL,5)
+		field(FVST,"brakes_on")
+
+		field(SXVL,6)
+		field(SXST,"aptm_moving")
+
+		field(SVVL,7)
+		field(SVST,"aptm_alarm")
+
+		field(EIVL,8)
+		field(EIST,"aptm_recovering")
+
+		field(NIVL,9)
+		field(NIST,"grid_moving")
+
+		field(TEVL,10)
+		field(TEST,"grid_alarm")
+
+		field(ELVL,11)
+		field(ELST,"grid_recovering")
+
+#		field(TVVL,0)
+#		field(TVST)
+#		field(TTVL,0)
+#		field(TTST)
+#		field(FTVL,0)
+#		field(FTST)
+#		field(FFVL,0)
+#		field(FFST)
+
+		field(FLNK, "$(P):stateRB PP")
+
+}
+
+

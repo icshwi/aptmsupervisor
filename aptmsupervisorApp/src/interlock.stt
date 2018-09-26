@@ -1,0 +1,80 @@
+program interlock
+
+float DIFF;
+assign DIFF to "jparc:xp";
+monitor DIFF;
+
+ 
+float GRID;
+assign GRID to "jparc:001.VAL";
+
+int GRID_ENABLE;
+assign GRID_ENABLE to "jparc:001.CNEN";
+
+int GRID_STOP;
+assign GRID_STOP to "jparc:001.STOP";
+
+int HOMEG;
+assign HOMEG to "jparc:001.HOMF";
+
+int HOMEG_SWITCH;
+assign HOMEG_SWITCH to "jparc:001.LLS";
+monitor HOMEG_SWITCH;
+
+int GRID_DMOV;
+assign GRID_DMOV to "jparc:001.DMOV";
+monitor GRID_DMOV;
+
+float GRID_RBV;
+assign GRID_RBV to "jparc:001.RBV";
+monitor GRID_RBV;
+
+
+float APTM;
+assign APTM to "jparc:002.VAL";
+monitor APTM;
+evflag myflag;
+sync APTM myflag;
+
+int APTM_ENABLE;
+assign APTM_ENABLE to "jparc:002.CNEN";
+
+int APTM_STOP;
+assign APTM_STOP to "jparc:002.STOP";
+
+int HOMEA;
+assign HOMEA to "jparc:002.HOMF";
+
+int HOMEA_SWITCH;
+assign HOMEA_SWITCH to "jparc:002.LLS";
+monitor HOMEA_SWITCH;
+
+int APTM_DMOV;
+assign APTM_DMOV to "jparc:002.DMOV";
+monitor APTM_DMOV;
+
+float APTM_RBV;
+assign APTM_RBV to "jparc:002.RBV";
+monitor APTM_RBV;
+
+
+
+ss joao {
+	state OK
+	{
+		entry
+		{
+			printf("We entered state OK\n");				
+		}     
+	when(efTestAndClear(myflag) && APTM > 100 ) {
+	
+				printf("Forbiden value: going back to 50\n");
+				APTM=50;	
+				pvPut(APTM);
+		}	state OK
+
+}		
+}		
+
+
+

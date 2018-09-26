@@ -1,0 +1,286 @@
+program collision_prevention
+
+float DIFF;
+assign DIFF to "jparc:xp";
+monitor DIFF;
+
+
+float GRID;
+assign GRID to "jparc:001.VAL";
+monitor GRID;
+
+int GRID_ENABLE;
+assign GRID_ENABLE to "jparc:001.CNEN";
+monitor GRID_ENABLE;
+
+int GRID_STOP;
+assign GRID_STOP to "jparc:001.STOP";
+
+int HOMEG;
+assign HOMEG to "jparc:001.HOMF";
+
+int HOMEG_SWITCH;
+assign HOMEG_SWITCH to "jparc:001.LLS";
+monitor HOMEG_SWITCH;
+
+int GRID_DMOV;
+assign GRID_DMOV to "jparc:001.DMOV";
+monitor GRID_DMOV;
+
+float GRID_RBV;
+assign GRID_RBV to "jparc:001.RBV";
+monitor GRID_RBV;
+
+int GRID_BRAKE;
+assign GRID_BRAKE to "jparc:ec0-s2-EL2819-BO8";
+monitor GRID_BRAKE;
+evflag	GRID_BRAKE_FLAG;
+sync GRID_BRAKE GRID_BRAKE_FLAG;
+
+
+
+
+float APTM;
+assign APTM to "jparc:002.VAL";
+monitor APTM;
+
+int APTM_ENABLE;
+assign APTM_ENABLE to "jparc:002.CNEN";
+monitor APTM_ENABLE;
+
+int APTM_STOP;
+assign APTM_STOP to "jparc:002.STOP";
+
+int HOMEA;
+assign HOMEA to "jparc:002.HOMF";
+
+int HOMEA_SWITCH;
+assign HOMEA_SWITCH to "jparc:002.LLS";
+monitor HOMEA_SWITCH;
+
+int APTM_DMOV;
+assign APTM_DMOV to "jparc:002.DMOV";
+monitor APTM_DMOV;
+
+float APTM_RBV;
+assign APTM_RBV to "jparc:002.RBV";
+monitor APTM_RBV;
+
+int APTM_BRAKE;
+assign APTM_BRAKE to "jparc:ec0-s2-EL2819-BO12";
+monitor APTM_BRAKE;
+evflag	APTM_BRAKE_FLAG;
+sync APTM_BRAKE APTM_BRAKE_FLAG;
+
+
+ss ss1 {
+
+    state home_grid 
+	{
+		entry
+		{
+			printf("We entered home grid state\n");
+			GRID_BRAKE=TRUE;
+			pvPut(GRID_BRAKE);
+			HOMEG=TRUE;
+			pvPut(HOMEG);	
+			APTM_BRAKE=FALSE;
+			pvPut(APTM_BRAKE);			
+		}        
+		
+		when (HOMEG_SWITCH==1) 
+		{
+            printf("sncExample: homing grid finished\n");
+        } state safe_grid_init
+	} 
+
+	state safe_grid_init
+	{
+		entry
+		{
+			printf("We entered safe grid init\n");				
+		}    
+	    when (delay(10)) {
+            printf("sncExample: Startup delay over\n");
+        } state home_aptm
+	}
+	 state home_aptm 
+	{
+		entry
+		{
+			printf("We entered home aptm homing state\n");
+			APTM_BRAKE=TRUE;
+			pvPut(APTM_BRAKE);
+			HOMEA=TRUE;
+			pvPut(HOMEA);
+			GRID_BRAKE=FALSE;
+			pvPut(GRID_BRAKE);				
+		}        
+		
+		when (HOMEA_SWITCH==1) 
+		{
+            printf("sncExample: homing aptm over\n");
+        } state safe_aptm_init
+	} 
+	state safe_aptm_init
+	{
+		entry
+		{
+			printf("We entered safe aptm init\n");				
+		}    
+	    when (delay(10)) {
+            printf("sncExample: Startup delay over\n");
+        } state move_aptm
+	}
+
+	state move_aptm
+	{
+		entry
+		{
+			printf("We entered move aptm to safe position\n");
+			APTM=60;
+			pvPut(APTM);				
+		}    
+	    when (APTM_DMOV==1 && APTM_RBV>50) {
+            printf("sncExample: APTM in safe position\n");
+        } state brakes_on
+	
+	}	
+	state brakes_on
+	{
+		entry
+		{
+			APTM_BRAKE=FALSE;
+			pvPut(APTM_BRAKE);
+			GRID_BRAKE=FALSE;
+			pvPut(GRID_BRAKE);
+			printf("Both brakes ON\n");		
+			printf("RElease APTM brake to continue\n");						
+		}  
+		
+		when(efTestAndClear(APTM_BRAKE_FLAG) && APTM_BRAKE==TRUE)
+		{ 			
+			printf("Moved to Moving APTM state\n");						
+		} state aptm_moving
+
+		when(efTestAndClear(GRID_BRAKE_FLAG) && GRID_BRAKE==TRUE)
+		{ 
+			GRID_BRAKE=FALSE;
+			pvPut(GRID_BRAKE);
+			printf("You cannot release grid brakes\n");		
+		} state brakes_on
+	}
+
+
+	state aptm_moving
+	{
+	entry
+		{
+			printf("We entered to move the aptm \n");			
+		}    
+
+		when(efTestAndClear(APTM_BRAKE_FLAG) && APTM_BRAKE==FALSE)
+		{ 			
+			printf("Going back to brakes on!!\n");						
+		} state brakes_on
+
+		when(efTestAndClear(GRID_BRAKE_FLAG) && GRID_BRAKE==TRUE)
+		{ 
+			printf("You are going to move the grid\n");	
+			APTM_BRAKE=FALSE;
+			pvPut(APTM_BRAKE);	
+		} state grid_moving
+		when((APTM_RBV-GRID_RBV)<30){
+					printf("distance is to close!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");						
+		}state aptm_alarm
+		}
+
+		state aptm_alarm {
+		entry
+		{
+			printf("You entered in APTM ALARM state because the distance is to close\n");
+			
+			APTM_STOP=TRUE;
+			pvPut(APTM_STOP); 
+			APTM_ENABLE=FALSE;
+			pvPut(APTM_ENABLE);			
+			APTM_BRAKE=FALSE;
+			pvPut(APTM_BRAKE);
+		}  
+		when (delay(10)) {
+            printf("moving aptm to save distance\n");
+			APTM_BRAKE=TRUE;
+			pvPut(APTM_BRAKE);
+			pvGet(GRID_RBV); 			
+			APTM=(GRID_RBV+40);
+			pvPut(APTM); 
+        } state aptm_recovering
+	}
+	state aptm_recovering {
+		entry
+		{
+			printf("You entered in APTM recovery state\n");
+		}  
+		when (delay(10)) {
+            printf("moving aptm to save distance\n");
+        } state aptm_moving
+	}
+		
+state grid_moving
+	{
+	entry
+		{
+			printf("We entered to move the grid \n");			
+		}    
+
+		when(efTestAndClear(GRID_BRAKE_FLAG) && GRID_BRAKE==FALSE)
+		{ 			
+			printf("Going back to brakes on!!\n");						
+		} state brakes_on
+
+		when(efTestAndClear(APTM_BRAKE_FLAG) && APTM_BRAKE==TRUE)
+		{ 
+			printf("You are going to move the aptm\n");	
+			GRID_BRAKE=FALSE;
+			pvPut(GRID_BRAKE);	
+		} state aptm_moving
+
+		when((APTM_RBV-GRID_RBV)<30){
+					printf("distance is to close!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");						
+		}state grid_alarm
+		}
+
+		state grid_alarm {
+		entry
+		{
+			printf("You entered in GRID ALARM state because the distance is to close\n");
+			
+			GRID_STOP=TRUE;
+			pvPut(GRID_STOP); 
+			GRID_ENABLE=FALSE;
+			pvPut(GRID_ENABLE);			
+			GRID_BRAKE=FALSE;
+			pvPut(GRID_BRAKE);
+		}  
+		when (delay(10)) {
+            printf("moving GRID to save distance\n");
+			GRID_BRAKE=TRUE;
+			pvPut(GRID_BRAKE);
+			pvGet(APTM_RBV); 			
+			GRID=(APTM_RBV-40);
+			pvPut(GRID); 
+        } state grid_recovering
+	}
+	state grid_recovering {
+		entry
+		{
+			printf("You entered in GRID recovery state\n");
+		}  
+		when (delay(10)) {
+            printf("moving GRID to save distance\n");
+        } state grid_moving
+	}
+		
+}
+
+	

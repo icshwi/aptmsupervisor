@@ -1,1 +1,5 @@
 registrar(sncExampleRegistrar)
+registrar(sncjparcRegistrar)
+registrar(interlockRegistrar)
+registrar(collision_preventionRegistrar)
+registrar(dummyRegistrar)

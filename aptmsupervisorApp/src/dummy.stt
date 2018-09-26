@@ -1,0 +1,41 @@
+program dummy
+
+string myPV;
+assign myPV to "testmypv:currentState";
+
+int myPV2;
+assign myPV2 to "$(P):stateOut";
+
+ss ss1 {
+
+    state state_one 
+	{
+		entry
+		{
+			printf("We entered state one\n");
+			myPV2 = 5;			
+			pvPut(myPV2);
+		}        
+		
+		when (delay(5)) 
+		{
+        } state state_two
+	} 
+
+	state state_two
+	{
+		entry
+		{
+			printf("We entered state two\n");	
+			myPV2 = 8;			
+			pvPut(myPV2);
+			
+		}        
+
+		when (delay(6))
+		{
+		} state state_one
+	}
+
+}
+

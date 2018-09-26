@@ -1,0 +1,156 @@
+program sncjparc
+
+float DIFF;
+assign DIFF to "jparc:xp";
+monitor DIFF;
+
+
+float GRID;
+assign GRID to "jparc:001.VAL";
+
+int GRID_ENABLE;
+assign GRID_ENABLE to "jparc:001.CNEN";
+
+int GRID_STOP;
+assign GRID_STOP to "jparc:001.STOP";
+
+int HOMEG;
+assign HOMEG to "jparc:001.HOMF";
+
+int HOMEG_SWITCH;
+assign HOMEG_SWITCH to "jparc:001.LLS";
+monitor HOMEG_SWITCH;
+
+int GRID_DMOV;
+assign GRID_DMOV to "jparc:001.DMOV";
+monitor GRID_DMOV;
+
+float GRID_RBV;
+assign GRID_RBV to "jparc:001.RBV";
+monitor GRID_RBV;
+
+
+float APTM;
+assign APTM to "jparc:002.VAL";
+
+int APTM_ENABLE;
+assign APTM_ENABLE to "jparc:002.CNEN";
+
+int APTM_STOP;
+assign APTM_STOP to "jparc:002.STOP";
+
+int HOMEA;
+assign HOMEA to "jparc:002.HOMF";
+
+int HOMEA_SWITCH;
+assign HOMEA_SWITCH to "jparc:002.LLS";
+monitor HOMEA_SWITCH;
+
+int APTM_DMOV;
+assign APTM_DMOV to "jparc:002.DMOV";
+monitor APTM_DMOV;
+
+float APTM_RBV;
+assign APTM_RBV to "jparc:002.RBV";
+monitor APTM_RBV;
+
+
+
+ss ss1 {
+
+    state home_grid 
+	{
+		entry
+		{
+			printf("We entered home grid\n");
+			HOMEG=TRUE;
+			pvPut(HOMEG);				
+		}        
+		
+		when (HOMEG_SWITCH==1) 
+		{
+            printf("sncExample: homing grid over\n");
+        } state safe_grid_init
+	} 
+
+	state safe_grid_init
+	{
+		entry
+		{
+			printf("We entered safe grid init\n");				
+		}    
+	    when (delay(10)) {
+            printf("sncExample: Startup delay over\n");
+        } state home_aptm
+	}
+	 state home_aptm 
+	{
+		entry
+		{
+			printf("We entered home aptm homing state\n");
+			HOMEA=TRUE;
+			pvPut(HOMEA);				
+		}        
+		
+		when (HOMEA_SWITCH==1) 
+		{
+            printf("sncExample: homing aptm over\n");
+        } state safe_aptm_init
+	} 
+	state safe_aptm_init
+	{
+		entry
+		{
+			printf("We entered safe aptm init\n");				
+		}    
+	    when (delay(10)) {
+            printf("sncExample: Startup delay over\n");
+        } state move_aptm
+	}
+	state move_aptm
+	{
+		entry
+		{
+			printf("We entered move aptm to safe position\n");
+			APTM=60;
+			pvPut(APTM);				
+		}    
+	    when (APTM_DMOV==1 && APTM_RBV>50) {
+            printf("sncExample: APTM in safe position\n");
+        } state check_distance
+	}	
+    state check_distance
+	{
+		entry
+		{
+			printf("We entered safe position\n");				
+		}    
+	    when (DIFF<50) {
+			APTM_STOP=TRUE;
+			pvPut(APTM_STOP);
+			GRID_STOP=TRUE;
+			pvPut(GRID_STOP);
+			APTM_ENABLE=FALSE;
+			pvPut(APTM_ENABLE);
+            printf("sncExample: ERROR DISTANCE TOO CLOSE\n");
+            printf("sncExample: GRID HAS BEEN STOPED\n");
+            printf("sncExample: APTM HAS BEEN STOPED\n");
+            printf("sncExample: GRID HAS BEEN DISABLED\n");
+            printf("sncExample: APTM HAS BEEN DISABLED\n");
+        } state check_distance
+	}	
+
+state safe
+	{
+		entry
+		{
+			printf("We entered safe position\n");				
+		}    
+	    when (delay(10)) {
+		
+            printf("sncExample: Startup delay over\n");
+        } state safe
+	}	
+	
+}
+

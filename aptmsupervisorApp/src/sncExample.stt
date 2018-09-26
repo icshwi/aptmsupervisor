@@ -1,22 +1,55 @@
 program sncExample
-double v;
-assign v to "{user}:aiExample";
-monitor v;
+
+
+float VAL;
+assign VAL to "jparc:001.RBV";
+monitor VAL;
+
+short OUPIN_16;
+assign OUPIN_16 to "jparc:ec0-s2-EL2819-BO4";
 
 ss ss1 {
-    state init {
-	when (delay(10)) {
-	    printf("sncExample: Startup delay over\n");
-	} state low
-    }
-    state low {
-	when (v > 5.0) {
-	    printf("sncExample: Changing to high\n");
-	} state high
-    }
-    state high {
-	when (v <= 5.0) {
-	    printf("sncExample: Changing to low\n");
-	} state low
-    }
+
+    state init 
+	{
+		entry
+		{
+			printf("We entered state init\n");				
+		}        
+		
+		when (delay(10)) 
+		{
+            printf("sncExample: Startup delay over\n");
+        } state VAL_good
+	} 
+
+	state VAL_good
+	{
+		entry
+		{
+			printf("We entered state val good\n");				
+		}        
+
+		when (VAL>20)
+		{
+		printf("sncExample: going to bad state!!!\n");
+		OUPIN_16=TRUE;
+		pvPut(OUPIN_16);
+		}state VAL_bad
+	}
+
+	state VAL_bad
+	{
+		entry
+		{
+			printf("We entered state val bad\n");				
+		}        
+
+		when (VAL<20)
+		{	
+		printf("sncExample: going to good state!!!\n");
+		OUPIN_16=FALSE;
+		pvPut(OUPIN_16);
+		} state VAL_good
+	} 
 }
